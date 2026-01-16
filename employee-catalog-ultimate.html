@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Команда</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            
+            --bg: #f9fafb;
+            --surface: #ffffff;
+            --text: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        [data-theme="dark"] {
+            --bg: #111827;
+            --surface: #1f2937;
+            --text: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border: #374151;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .header {
+            background: var(--surface);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .header-left p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg);
+        }
+
+        .toolbar {
+            background: var(--surface);
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search {
+            width: 100%;
+            padding: 10px 36px 10px 40px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text);
+        }
+
+        .search:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+            display: none;
+        }
+
+        .clear-search.visible {
+            display: block;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .filter {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .filter:hover {
+            background: var(--bg);
+        }
+
+        .filter.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .admin-bar {
+            background: var(--surface);
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--bg);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .view-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .position {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .badge.department {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .badge.online {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .badge.away {
+            background: var(--warning);
+            color: white;
+            border-color: var(--warning);
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .contact-row svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .skill {
+            padding: 4px 10px;
+            background: var(--bg);
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .quick-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .quick-btn:hover {
+            background: var(--bg);
+        }
+
+        .quick-btn.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .birthday-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .list-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .list-card .avatar {
+            width: 48px;
+            height: 48px;
+        }
+
+        .list-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 700px;
+            margin: 40px 0;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+
+        .close-btn:hover {
+            background: var(--border);
+        }
+
+        .tabs {
+            display: flex;
+            padding: 12px 24px;
+            gap: 8px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: var(--surface);
+        }
+
+        .tab.active {
+            background: var(--surface);
+            color: var(--primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-box {
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .info-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--surface);
+            box-shadow: 0 0 0 1px var(--border);
+        }
+
+        .timeline-date {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .timeline-content {
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .timeline-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .project-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .project-card {
+            padding: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .project-name {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .status {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status.active { background: #dcfce7; color: #16a34a; }
+        .status.completed { background: #dbeafe; color: #2563eb; }
+        .status.planned { background: #fef3c7; color: #d97706; }
+
+        [data-theme="dark"] .status.active { background: rgba(34,197,94,0.2); color: #4ade80; }
+        [data-theme="dark"] .status.completed { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        [data-theme="dark"] .status.planned { background: rgba(245,158,11,0.2); color: #fbbf24; }
+
+        .project-role {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .project-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .input, .select, .textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text);
+        }
+
+        .input:focus, .select:focus, .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .skills-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            min-height: 48px;
+        }
+
+        .skills-input:focus-within {
+            border-color: var(--primary);
+        }
+
+        .skill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .remove-skill {
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .remove-skill:hover {
+            color: var(--error);
+        }
+
+        .skill-input-field {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            font-family: inherit;
+            min-width: 120px;
+            flex: 1;
+            color: var(--text);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .availability-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            position: absolute;
+            top: 24px;
+            left: 60px;
+            border: 2px solid var(--surface);
+        }
+
+        .availability-indicator.online { background: var(--success); }
+        .availability-indicator.away { background: var(--warning); }
+        .availability-indicator.offline { background: var(--text-secondary); }
+
+        @media (max-width: 768px) {
+            .grid-view {
+                grid-template-columns: 1fr;
+            }
+            
+            .list-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .list-card-actions {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <h1>Команда</h1>
+            <p id="userInfo">Загрузка...</p>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" id="adminBadge" style="display: none;" title="Админ">⚡</button>
+            <button class="icon-btn" onclick="toggleTheme()" title="Тема">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search" id="searchInput" placeholder="Поиск по имени, должности, навыкам...">
+            <button class="clear-search" id="clearSearch" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="filters">
+            <button class="filter active" onclick="filterDept('all')">Все</button>
+            <button class="filter" onclick="filterDept('IT')">IT</button>
+            <button class="filter" onclick="filterDept('Дизайн')">Дизайн</button>
+            <button class="filter" onclick="filterDept('Продукт')">Продукт</button>
+            <button class="filter" onclick="filterDept('Маркетинг')">Маркетинг</button>
+            <button class="filter" onclick="filterDept('HR')">HR</button>
+        </div>
+    </div>
+
+    <div class="admin-bar" id="adminBar" style="display: none;">
+        <button class="btn btn-primary" onclick="openAddModal()">➕ Добавить</button>
+        <button class="btn" onclick="showBirthdays()">🎂 Дни рождения</button>
+        <button class="btn" onclick="exportData()">📥 Экспорт</button>
+    </div>
+
+    <div class="container">
+        <div class="view-toggle">
+            <button class="view-btn active" onclick="switchView('grid')">
+                <span>Сетка</span>
+            </button>
+            <button class="view-btn" onclick="switchView('list')">
+                <span>Список</span>
+            </button>
+        </div>
+
+        <div class="grid-view" id="employeeGrid">
+            <div class="empty">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">Загрузка</div>
+                <div class="empty-text">Подождите...</div>
+            </div>
+        </div>
+
+        <div class="list-view" id="employeeList" style="display: none;"></div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="profileTitle">Профиль</div>
+                <button class="close-btn" onclick="closeProfile()">✕</button>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('info')">Информация</button>
+                <button class="tab" onclick="switchTab('projects')">Проекты</button>
+                <button class="tab" onclick="switchTab('history')">История</button>
+            </div>
+            <div class="modal-body">
+                <div class="section active" id="sec-info">
+                    <div class="info-grid" id="profileInfo"></div>
+                </div>
+                <div class="section" id="sec-projects">
+                    <div class="project-grid" id="projectsList"></div>
+                    <button class="btn btn-primary" id="addProjectBtn" onclick="addProject()" style="display: none; width: 100%; margin-top: 16px;">➕ Добавить проект</button>
+                </div>
+                <div class="section" id="sec-history">
+                    <div class="timeline" id="timelineList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Modal -->
+    <div class="modal" id="employeeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="empModalTitle">Добавить сотрудника</div>
+                <button class="close-btn" onclick="closeEmployeeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm" onsubmit="saveEmployee(event)">
+                    <div class="form-group">
+                        <label class="label">Имя и Фамилия *</label>
+                        <input type="text" class="input" id="empName" required placeholder="Иван Иванов">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Должность *</label>
+                        <input type="text" class="input" id="empPosition" required placeholder="Senior Developer">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Отдел *</label>
+                        <select class="select" id="empDepartment" required>
+                            <option value="">Выберите отдел</option>
+                            <option value="IT">IT</option>
+                            <option value="Дизайн">Дизайн</option>
+                            <option value="Продукт">Продукт</option>
+                            <option value="Маркетинг">Маркетинг</option>
+                            <option value="HR">HR</option>
+                            <option value="Финансы">Финансы</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Статус</label>
+                        <select class="select" id="empStatus">
+                            <option value="online">🟢 В сети</option>
+                            <option value="away">🟡 Отошёл</option>
+                            <option value="offline">⚫ Не в сети</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Дата рождения</label>
+                        <input type="date" class="input" id="empBirthday">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Телефон</label>
+                        <input type="tel" class="input" id="empPhone" placeholder="+7 (999) 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Email</label>
+                        <input type="email" class="input" id="empEmail" placeholder="ivanov@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Telegram</label>
+                        <input type="text" class="input" id="empTelegram" placeholder="@username">
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Навыки (Enter для добавления)</label>
+                        <div class="skills-input" id="skillsArea" onclick="focusSkillInput()">
+                            <input type="text" class="skill-input-field" id="skillInput" placeholder="Введите навык..." onkeydown="handleSkillInput(event)">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Сохранить</button>
+                        <button type="button" class="btn" onclick="closeEmployeeModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="projModalTitle">Добавить проект</div>
+                <button class="close-btn" onclick="closeProjectModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="projectForm" onsubmit="saveProject(event)">
+                    <div class="form-group">
+                        <label class="label">Название *</label>
+                        <input type="text" class="input" id="projName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Роль *</label>
+                        <input type="text" class="input" id="projRole" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Статус *</label>
+                        <select class="select" id="projStatus" required>
+                            <option value="active">Активный</option>
+                            <option value="completed">Завершён</option>
+                            <option value="planned">Запланирован</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">Описание</label>
+                        <textarea class="textarea" id="projDesc"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Сохранить</button>
+                        <button type="button" class="btn" onclick="closeProjectModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Birthdays Modal -->
+    <div class="modal" id="birthdaysModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🎂 Дни рождения</div>
+                <button class="close-btn" onclick="closeBirthdaysModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="birthdaysList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        const ADMIN_IDS = [123456789];
+
+        let currentUser = null;
+        let isAdmin = false;
+        let employees = [];
+        let editingId = null;
+        let viewingId = null;
+        let editingProjectId = null;
+        let currentFilter = 'all';
+        let currentSkills = [];
+        let currentView = 'grid';
+
+        function init() {
+            currentUser = tg.initDataUnsafe?.user;
+            
+            if (currentUser) {
+                isAdmin = ADMIN_IDS.includes(currentUser.id);
+                document.getElementById('userInfo').textContent = 
+                    `${currentUser.first_name} ${currentUser.last_name || ''}`.trim();
+                
+                if (isAdmin) {
+                    document.getElementById('adminBadge').style.display = 'block';
+                    document.getElementById('adminBar').style.display = 'flex';
+                }
+            } else {
+                document.getElementById('userInfo').textContent = 'Тестовый режим';
+                isAdmin = true;
+                document.getElementById('adminBadge').style.display = 'block';
+                document.getElementById('adminBar').style.display = 'flex';
+            }
+
+            loadEmployees();
+            renderEmployees();
+
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const clearBtn = document.getElementById('clearSearch');
+                clearBtn.classList.toggle('visible', e.target.value.length > 0);
+                renderEmployees(e.target.value);
+            });
+
+            const savedTheme = localStorage.getItem('theme_new') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+        }
+
+        function loadEmployees() {
+            const stored = localStorage.getItem('employees_new');
+            if (stored) {
+                employees = JSON.parse(stored);
+            } else {
+                employees = [
+                    {
+                        id: 1,
+                        name: 'Алексей Петров',
+                        position: 'Senior Backend Developer',
+                        department: 'IT',
+                        status: 'online',
+                        phone: '+7 (999) 123-45-67',
+                        email: 'a.petrov@company.com',
+                        telegram: '@alex_petrov',
+                        birthday: '1990-05-15',
+                        skills: ['Python', 'Docker', 'PostgreSQL', 'Redis', 'FastAPI'],
+                        projects: [
+                            { id: 1, name: 'API Platform v2.0', role: 'Tech Lead', status: 'active', description: 'Разработка новой версии API' },
+                            { id: 2, name: 'Mobile Backend', role: 'Backend Developer', status: 'completed', description: 'Backend для мобильного приложения' }
+                        ],
+                        timeline: [
+                            { date: '2024-01-15', title: 'Повышение', description: 'Стал Senior Developer' },
+                            { date: '2023-06-10', title: 'Проект завершён', description: 'Mobile Backend запущен' }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'Мария Сидорова',
+                        position: 'Lead UI/UX Designer',
+                        department: 'Дизайн',
+                        status: 'online',
+                        phone: '+7 (999) 234-56-78',
+                        email: 'm.sidorova@company.com',
+                        telegram: '@maria_sid',
+                        birthday: '1995-08-22',
+                        skills: ['Figma', 'Adobe XD', 'Illustrator', 'UX Research'],
+                        projects: [
+                            { id: 1, name: 'Редизайн сайта', role: 'Lead Designer', status: 'active', description: 'Полное обновление дизайна' }
+                        ],
+                        timeline: [
+                            { date: '2024-02-01', title: 'Новый проект', description: 'Начат редизайн' }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: 'Дмитрий Козлов',
+                        position: 'Product Manager',
+                        department: 'Продукт',
+                        status: 'away',
+                        phone: '+7 (999) 345-67-89',
+                        email: 'd.kozlov@company.com',
+                        telegram: '@dmitry_k',
+                        birthday: '1988-03-10',
+                        skills: ['Roadmapping', 'Analytics', 'JIRA', 'Agile'],
+                        projects: [
+                            { id: 1, name: 'Q4 Roadmap', role: 'PM', status: 'planned', description: 'Планирование' }
+                        ],
+                        timeline: [
+                            { date: '2023-12-15', title: 'Годовщина', description: '1 год в компании' }
+                        ]
+                    }
+                ];
+                saveToStorage();
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('employees_new', JSON.stringify(employees));
+        }
+
+        function isBirthdayToday(bday) {
+            if (!bday) return false;
+            const today = new Date();
+            const bd = new Date(bday);
+            return today.getMonth() === bd.getMonth() && today.getDate() === bd.getDate();
+        }
+
+        function filterDept(dept) {
+            currentFilter = dept;
+            document.querySelectorAll('.filter').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderEmployees();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('clearSearch').classList.remove('visible');
+            renderEmployees();
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (view === 'grid') {
+                document.getElementById('employeeGrid').style.display = 'grid';
+                document.getElementById('employeeList').style.display = 'none';
+            } else {
+                document.getElementById('employeeGrid').style.display = 'none';
+                document.getElementById('employeeList').style.display = 'flex';
+            }
+            
+            renderEmployees();
+        }
+
+        function renderEmployees(search = '') {
+            let filtered = employees;
+            
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(e => e.department === currentFilter);
+            }
+            
+            if (search) {
+                const term = search.toLowerCase();
+                filtered = filtered.filter(e => 
+                    e.name.toLowerCase().includes(term) ||
+                    e.position.toLowerCase().includes(term) ||
+                    e.department.toLowerCase().includes(term) ||
+                    e.skills?.some(s => s.toLowerCase().includes(term))
+                );
+            }
+
+            if (filtered.length === 0) {
+                const empty = `
+                    <div class="empty">
+                        <div class="empty-icon">🔍</div>
+                        <div class="empty-title">Ничего не найдено</div>
+                        <div class="empty-text">Попробуйте изменить запрос</div>
+                    </div>
+                `;
+                document.getElementById('employeeGrid').innerHTML = empty;
+                document.getElementById('employeeList').innerHTML = empty;
+                return;
+            }
+
+            if (currentView === 'grid') {
+                renderGridView(filtered);
+            } else {
+                renderListView(filtered);
+            }
+        }
+
+        function renderGridView(filtered) {
+            const container = document.getElementById('employeeGrid');
+            
+            container.innerHTML = filtered.map(emp => {
+                const initials = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+                const bdayBadge = isBirthdayToday(emp.birthday) ? '<div class="birthday-badge">🎂 День рождения</div>' : '';
+                const skills = emp.skills?.slice(0, 4).map(s => `<span class="skill">${s}</span>`).join('') || '';
+                
+                const statusClass = emp.status || 'offline';
+                const statusText = { online: '🟢 В сети', away: '🟡 Отошёл', offline: '⚫ Не в сети' }[statusClass];
+                
+                const adminActions = isAdmin ? `
+                    <div class="quick-actions">
+                        <button class="quick-btn primary" onclick="viewEmployee(${emp.id})">Открыть</button>
+                        <button class="quick-btn" onclick="editEmployee(${emp.id})">Изменить</button>
+                        <button class="quick-btn" onclick="deleteEmployee(${emp.id})">Удалить</button>
+                    </div>
+                ` : `
+                    <div class="quick-actions">
+                        <button class="quick-btn primary" onclick="viewEmployee(${emp.id})">Открыть профиль</button>
+                    </div>
+                `;
+
+                return `
+                    <div class="card">
+                        ${bdayBadge}
+                        <div class="card-header">
+                            <div style="position: relative;">
+                                <div class="avatar">${initials}</div>
+                                <div class="availability-indicator ${statusClass}"></div>
+                            </div>
+                            <div class="card-info">
+                                <div class="name">${emp.name}</div>
+                                <div class="position">${emp.position}</div>
+                                <div class="badges">
+                                    <span class="badge department">${emp.department}</span>
+                                    <span class="badge">${statusText}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${emp.phone ? `
+                        <div class="contact-row">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            <span>${emp.phone}</span>
+                        </div>` : ''}
+                        ${emp.email ? `
+                        <div class="contact-row">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <span>${emp.email}</span>
+                        </div>` : ''}
+                        ${skills ? `<div class="skills">${skills}</div>` : ''}
+                        ${adminActions}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderListView(filtered) {
+            const container = document.getElementById('employeeList');
+            
+            container.innerHTML = filtered.map(emp => {
+                const initials = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+                const statusClass = emp.status || 'offline';
+                const statusText = { online: '🟢 В сети', away: '🟡 Отошёл', offline: '⚫ Не в сети' }[statusClass];
+
+                return `
+                    <div class="list-card" onclick="viewEmployee(${emp.id})">
+                        <div style="position: relative;">
+                            <div class="avatar">${initials}</div>
+                            <div class="availability-indicator ${statusClass}"></div>
+                        </div>
+                        <div class="list-card-info">
+                            <div class="name">${emp.name}</div>
+                            <div class="position">${emp.position}</div>
+                            <div class="badges">
+                                <span class="badge department">${emp.department}</span>
+                                <span class="badge">${statusText}</span>
+                                ${emp.projects?.length ? `<span class="badge">📁 ${emp.projects.length}</span>` : ''}
+                            </div>
+                        </div>
+                        ${isAdmin ? `
+                        <div class="list-card-actions">
+                            <button class="btn" onclick="editEmployee(${emp.id}); event.stopPropagation();">Изменить</button>
+                            <button class="btn" onclick="deleteEmployee(${emp.id}); event.stopPropagation();">Удалить</button>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewEmployee(id) {
+            event?.stopPropagation();
+            viewingId = id;
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById('profileTitle').textContent = emp.name;
+            renderProfileInfo(emp);
+            renderProjects(emp);
+            renderTimeline(emp);
+            
+            document.getElementById('addProjectBtn').style.display = isAdmin ? 'block' : 'none';
+            switchTab('info');
+            document.getElementById('profileModal').classList.add('active');
+        }
+
+        function renderProfileInfo(emp) {
+            const bdayFormatted = emp.birthday ? new Date(emp.birthday).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) : 'Не указан';
+            const statusText = { online: '🟢 В сети', away: '🟡 Отошёл', offline: '⚫ Не в сети' }[emp.status || 'offline'];
+            
+            document.getElementById('profileInfo').innerHTML = `
+                <div class="info-box">
+                    <div class="info-label">Должность</div>
+                    <div class="info-value">${emp.position}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Отдел</div>
+                    <div class="info-value">${emp.department}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-label">Статус</div>
+                    <div class="info-value">${statusText}</div>
+                </div>
+                ${emp.birthday ? `
+                <div class="info-box">
+                    <div class="info-label">День рождения</div>
+                    <div class="info-value">${bdayFormatted}</div>
+                </div>` : ''}
+                ${emp.phone ? `
+                <div class="info-box">
+                    <div class="info-label">Телефон</div>
+                    <div class="info-value">${emp.phone}</div>
+                </div>` : ''}
+                ${emp.email ? `
+                <div class="info-box">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">${emp.email}</div>
+                </div>` : ''}
+                ${emp.telegram ? `
+                <div class="info-box">
+                    <div class="info-label">Telegram</div>
+                    <div class="info-value">${emp.telegram}</div>
+                </div>` : ''}
+                <div class="info-box">
+                    <div class="info-label">Проекты</div>
+                    <div class="info-value">${emp.projects?.length || 0}</div>
+                </div>
+                ${emp.skills?.length ? `
+                <div class="info-box" style="grid-column: 1 / -1;">
+                    <div class="info-label">Навыки</div>
+                    <div class="skills" style="margin-top: 8px;">
+                        ${emp.skills.map(s => `<span class="skill">${s}</span>`).join('')}
+                    </div>
+                </div>` : ''}
+            `;
+        }
+
+        function renderProjects(emp) {
+            const container = document.getElementById('projectsList');
+            
+            if (!emp.projects || emp.projects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">🚀</div>
+                        <div class="empty-title">Нет проектов</div>
+                        <div class="empty-text">${isAdmin ? 'Добавьте первый проект' : 'Проекты не добавлены'}</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = emp.projects.map(proj => {
+                const statusText = { active: 'Активный', completed: 'Завершён', planned: 'Запланирован' }[proj.status];
+                
+                return `
+                    <div class="project-card">
+                        <div class="project-header">
+                            <div class="project-name">${proj.name}</div>
+                            <div class="status ${proj.status}">${statusText}</div>
+                        </div>
+                        <div class="project-role">Роль: ${proj.role}</div>
+                        ${proj.description ? `<div class="project-desc">${proj.description}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTimeline(emp) {
+            const container = document.getElementById('timelineList');
+            
+            if (!emp.timeline || emp.timeline.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📅</div>
+                        <div class="empty-title">История пуста</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const sorted = [...emp.timeline].sort((a, b) => new Date(b.date) - new Date(a.date));
+            container.innerHTML = sorted.map(item => {
+                const date = new Date(item.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${date}</div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">${item.title}</div>
+                            <div class="timeline-desc">${item.description}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            event?.target.classList.add('active');
+            document.getElementById(`sec-${name}`).classList.add('active');
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').classList.remove('active');
+            viewingId = null;
+        }
+
+        function openAddModal() {
+            editingId = null;
+            currentSkills = [];
+            document.getElementById('empModalTitle').textContent = 'Добавить сотрудника';
+            document.getElementById('employeeForm').reset();
+            renderSkillsTags();
+            document.getElementById('employeeModal').classList.add('active');
+        }
+
+        function editEmployee(id) {
+            event?.stopPropagation();
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+
+            editingId = id;
+            currentSkills = emp.skills || [];
+            document.getElementById('empModalTitle').textContent = 'Редактировать';
+            document.getElementById('empName').value = emp.name;
+            document.getElementById('empPosition').value = emp.position;
+            document.getElementById('empDepartment').value = emp.department;
+            document.getElementById('empStatus').value = emp.status || 'offline';
+            document.getElementById('empBirthday').value = emp.birthday || '';
+            document.getElementById('empPhone').value = emp.phone || '';
+            document.getElementById('empEmail').value = emp.email || '';
+            document.getElementById('empTelegram').value = emp.telegram || '';
+            renderSkillsTags();
+            document.getElementById('employeeModal').classList.add('active');
+        }
+
+        function deleteEmployee(id) {
+            event?.stopPropagation();
+            if (!confirm('Удалить?')) return;
+            employees = employees.filter(e => e.id !== id);
+            saveToStorage();
+            renderEmployees();
+            tg.showAlert('Удалено');
+        }
+
+        function saveEmployee(e) {
+            e.preventDefault();
+
+            const data = {
+                name: document.getElementById('empName').value.trim(),
+                position: document.getElementById('empPosition').value.trim(),
+                department: document.getElementById('empDepartment').value,
+                status: document.getElementById('empStatus').value,
+                birthday: document.getElementById('empBirthday').value || null,
+                phone: document.getElementById('empPhone').value.trim(),
+                email: document.getElementById('empEmail').value.trim(),
+                telegram: document.getElementById('empTelegram').value.trim(),
+                skills: currentSkills
+            };
+
+            if (editingId) {
+                const idx = employees.findIndex(e => e.id === editingId);
+                employees[idx] = { ...employees[idx], ...data };
+                tg.showAlert('Обновлено');
+            } else {
+                employees.push({
+                    id: Date.now(),
+                    ...data,
+                    projects: [],
+                    timeline: []
+                });
+                tg.showAlert('Добавлено');
+            }
+
+            saveToStorage();
+            renderEmployees();
+            closeEmployeeModal();
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').classList.remove('active');
+            document.getElementById('employeeForm').reset();
+            currentSkills = [];
+            editingId = null;
+        }
+
+        function handleSkillInput(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = e.target.value.trim();
+                if (val && !currentSkills.includes(val)) {
+                    currentSkills.push(val);
+                    e.target.value = '';
+                    renderSkillsTags();
+                }
+            }
+        }
+
+        function renderSkillsTags() {
+            const area = document.getElementById('skillsArea');
+            const input = document.getElementById('skillInput');
+            
+            area.innerHTML = currentSkills.map(s => 
+                `<span class="skill-tag">${s}<span class="remove-skill" onclick="removeSkill('${s}')">✕</span></span>`
+            ).join('') + input.outerHTML;
+            
+            document.getElementById('skillInput').addEventListener('keydown', handleSkillInput);
+        }
+
+        function removeSkill(s) {
+            currentSkills = currentSkills.filter(sk => sk !== s);
+            renderSkillsTags();
+        }
+
+        function focusSkillInput() {
+            document.getElementById('skillInput').focus();
+        }
+
+        function addProject() {}
+        function saveProject(e) { e.preventDefault(); }
+        function closeProjectModal() { document.getElementById('projectModal').classList.remove('active'); }
+        
+        function showBirthdays() {
+            const list = document.getElementById('birthdaysList');
+            const withBdays = employees.filter(e => e.birthday);
+            
+            if (withBdays.length === 0) {
+                list.innerHTML = '<div class="empty"><div class="empty-icon">🎂</div><div class="empty-title">Нет данных</div></div>';
+            } else {
+                const sorted = withBdays.sort((a, b) => {
+                    const aDate = new Date(a.birthday);
+                    const bDate = new Date(b.birthday);
+                    return aDate.getMonth() - bDate.getMonth() || aDate.getDate() - bDate.getDate();
+                });
+
+                list.innerHTML = sorted.map(emp => {
+                    const date = new Date(emp.birthday).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+                    const today = isBirthdayToday(emp.birthday);
+                    return `
+                        <div class="list-card" onclick="viewEmployee(${emp.id})" style="${today ? 'border: 2px solid var(--warning);' : ''}">
+                            <div class="avatar">${emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}</div>
+                            <div class="list-card-info">
+                                <div class="name">${emp.name}</div>
+                                <div class="position">${date}${today ? ' • Сегодня!' : ''}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('birthdaysModal').classList.add('active');
+        }
+        
+        function closeBirthdaysModal() { document.getElementById('birthdaysModal').classList.remove('active'); }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            
+            if (html.hasAttribute('data-theme')) {
+                html.removeAttribute('data-theme');
+                icon.textContent = '🌙';
+                localStorage.setItem('theme_new', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                icon.textContent = '☀️';
+                localStorage.setItem('theme_new', 'dark');
+            }
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(employees, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `team_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            tg.showAlert('Экспортировано');
+        }
+
+        ['profileModal', 'employeeModal', 'projectModal', 'birthdaysModal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => {
+                if (e.target.id === id) {
+                    if (id === 'profileModal') closeProfile();
+                    else if (id === 'employeeModal') closeEmployeeModal();
+                    else if (id === 'projectModal') closeProjectModal();
+                    else if (id === 'birthdaysModal') closeBirthdaysModal();
+                }
+            });
+        });
+
+        init();
+    </script>
+</body>
+</html>
