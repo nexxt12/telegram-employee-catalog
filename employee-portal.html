@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корпоративный портал</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #06b6d4;
+            
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-header {
+            background: var(--surface);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            border: 2px solid var(--surface);
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg);
+            transform: translateY(-1px);
+        }
+
+        .nav-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .nav-item {
+            padding: 14px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .welcome-text {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--bg);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .task-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            background: var(--border);
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            flex-shrink: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .task-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .task-priority {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .priority-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .priority-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .priority-low {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        [data-theme="dark"] .priority-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        [data-theme="dark"] .priority-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        [data-theme="dark"] .priority-low {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .employee-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .employee-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .employee-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 28px;
+            margin: 0 auto 16px;
+            position: relative;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--success);
+            border: 3px solid var(--surface);
+        }
+
+        .employee-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .employee-position {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .employee-contacts {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0 auto 16px;
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .profile-position {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 16px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .vacation-form {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .vacation-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .vacation-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .vacation-info h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .vacation-dates {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .vacation-status {
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        [data-theme="dark"] .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        [data-theme="dark"] .status-approved {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        [data-theme="dark"] .status-rejected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: var(--bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+
+        .close-btn:hover {
+            background: var(--border);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--error);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .employee-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <div class="header-left">
+            <div class="logo">CP</div>
+            <div>
+                <div class="header-title">Корпоративный портал</div>
+                <div class="header-subtitle" id="userInfo">Загрузка...</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="icon-btn" onclick="toggleTheme()" style="position: relative;">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <div class="user-avatar" onclick="goToProfile()">
+                <span id="userInitials">?</span>
+                <div class="status-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="showPage('dashboard')">🏠 Главная</button>
+        <button class="nav-item" onclick="showPage('profile')">👤 Мой профиль</button>
+        <button class="nav-item" onclick="showPage('tasks')">✓ Задачи</button>
+        <button class="nav-item" onclick="showPage('vacation')">🏖️ Отпуска</button>
+        <button class="nav-item" onclick="showPage('team')">👥 Команда</button>
+        <button class="nav-item" id="adminNav" onclick="showPage('admin')" style="display: none;">⚙️ Управление</button>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+            <div class="welcome-card">
+                <div class="welcome-title">Добро пожаловать, <span id="welcomeName">Пользователь</span>! 👋</div>
+                <div class="welcome-text">Сегодня отличный день для продуктивной работы</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Активных задач</div>
+                    <div class="stat-value" id="activeTasks">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Завершено задач</div>
+                    <div class="stat-value" id="completedTasks">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Дней до отпуска</div>
+                    <div class="stat-value" id="daysToVacation">—</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Сотрудников в сети</div>
+                    <div class="stat-value" id="onlineEmployees">0</div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>Сегодняшние задачи</span>
+                <button class="btn btn-primary btn-small" onclick="showPage('tasks')">Все задачи →</button>
+            </div>
+            <div class="task-list" id="todayTasks"></div>
+        </div>
+
+        <!-- Profile Page -->
+        <div class="page" id="page-profile">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <span id="profileInitials">?</span>
+                </div>
+                <div class="profile-name" id="profileName">Имя Фамилия</div>
+                <div class="profile-position" id="profilePosition">Должность</div>
+                <div class="profile-actions">
+                    <button class="btn" style="background: rgba(255,255,255,0.2); border: none; color: white;">
+                        📞 Позвонить
+                    </button>
+                    <button class="btn" style="background: rgba(255,255,255,0.2); border: none; color: white;">
+                        ✉️ Написать
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-title">Личная информация</div>
+            <div class="info-grid" id="profileInfoGrid"></div>
+
+            <div class="section-title">Проекты</div>
+            <div id="profileProjects"></div>
+        </div>
+
+        <!-- Tasks Page -->
+        <div class="page" id="page-tasks">
+            <div class="section-title">
+                <span>Мои задачи</span>
+                <button class="btn btn-primary btn-small" onclick="openAddTaskModal()">➕ Добавить задачу</button>
+            </div>
+            <div class="task-list" id="allTasks"></div>
+        </div>
+
+        <!-- Vacation Page -->
+        <div class="page" id="page-vacation">
+            <div class="section-title">Заявки на отпуск</div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Подать заявку</div>
+                </div>
+                <form class="vacation-form" onsubmit="submitVacationRequest(event)">
+                    <div class="form-group">
+                        <label class="form-label">Тип отпуска</label>
+                        <select class="form-select" id="vacationType" required>
+                            <option value="annual">Ежегодный оплачиваемый</option>
+                            <option value="sick">Больничный</option>
+                            <option value="unpaid">Неоплачиваемый</option>
+                            <option value="personal">Личные обстоятельства</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Дата начала</label>
+                        <input type="date" class="form-input" id="vacationStart" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Дата окончания</label>
+                        <input type="date" class="form-input" id="vacationEnd" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Комментарий (опционально)</label>
+                        <textarea class="form-textarea" id="vacationComment"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Отправить заявку</button>
+                </form>
+            </div>
+
+            <div class="section-title">История заявок</div>
+            <div class="vacation-list" id="vacationList"></div>
+        </div>
+
+        <!-- Team Page -->
+        <div class="page" id="page-team">
+            <div class="section-title">Команда</div>
+            <div class="employee-grid" id="teamGrid"></div>
+        </div>
+
+        <!-- Admin Page -->
+        <div class="page" id="page-admin" style="display: none;">
+            <div class="section-title">Панель управления</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Всего сотрудников</div>
+                    <div class="stat-value" id="adminTotalEmployees">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Активных задач</div>
+                    <div class="stat-value" id="adminActiveTasks">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Заявки на отпуск</div>
+                    <div class="stat-value" id="adminVacationRequests">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Проектов</div>
+                    <div class="stat-value" id="adminProjects">0</div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span>Управление сотрудниками</span>
+                <button class="btn btn-primary btn-small" onclick="openAddEmployeeModal()">➕ Добавить сотрудника</button>
+            </div>
+            <div class="employee-grid" id="adminEmployeeGrid"></div>
+
+            <div class="section-title">Заявки на отпуск (ожидают одобрения)</div>
+            <div class="vacation-list" id="adminVacationList"></div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Добавить задачу</div>
+                <button class="close-btn" onclick="closeTaskModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="saveTask(event)">
+                    <div class="form-group">
+                        <label class="form-label">Название задачи</label>
+                        <input type="text" class="form-input" id="taskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-textarea" id="taskDesc"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Приоритет</label>
+                        <select class="form-select" id="taskPriority">
+                            <option value="low">Низкий</option>
+                            <option value="medium" selected>Средний</option>
+                            <option value="high">Высокий</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Срок выполнения</label>
+                        <input type="date" class="form-input" id="taskDeadline">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Сохранить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Modal -->
+    <div class="modal" id="employeeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="empModalTitle">Добавить сотрудника</div>
+                <button class="close-btn" onclick="closeEmployeeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="saveEmployee(event)">
+                    <div class="form-group">
+                        <label class="form-label">Имя и Фамилия</label>
+                        <input type="text" class="form-input" id="empName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Должность</label>
+                        <input type="text" class="form-input" id="empPosition" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Отдел</label>
+                        <select class="form-select" id="empDepartment" required>
+                            <option value="">Выберите отдел</option>
+                            <option value="IT">IT</option>
+                            <option value="Дизайн">Дизайн</option>
+                            <option value="Продукт">Продукт</option>
+                            <option value="Маркетинг">Маркетинг</option>
+                            <option value="HR">HR</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="empEmail">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-input" id="empPhone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Telegram ID (для доступа)</label>
+                        <input type="number" class="form-input" id="empTelegramId">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Сохранить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        const ADMIN_IDS = [123456789]; // Замените на свой Telegram ID
+
+        let currentUser = null;
+        let currentEmployee = null;
+        let isAdmin = false;
+        let employees = [];
+        let tasks = [];
+        let vacationRequests = [];
+
+        function init() {
+            currentUser = tg.initDataUnsafe?.user;
+            
+            if (currentUser) {
+                isAdmin = ADMIN_IDS.includes(currentUser.id);
+                const firstName = currentUser.first_name || '';
+                const lastName = currentUser.last_name || '';
+                const fullName = `${firstName} ${lastName}`.trim();
+                
+                document.getElementById('userInfo').textContent = fullName;
+                document.getElementById('welcomeName').textContent = firstName;
+                
+                const initials = (firstName[0] || '') + (lastName[0] || '');
+                document.getElementById('userInitials').textContent = initials.toUpperCase();
+                
+                // Поиск сотрудника по Telegram ID
+                currentEmployee = employees.find(e => e.telegramId === currentUser.id);
+                
+                if (!currentEmployee && !isAdmin) {
+                    // Создаём временного сотрудника для демо
+                    currentEmployee = {
+                        id: currentUser.id,
+                        name: fullName,
+                        position: 'Сотрудник',
+                        department: 'Общий',
+                        email: '',
+                        phone: '',
+                        telegramId: currentUser.id,
+                        status: 'online'
+                    };
+                    employees.push(currentEmployee);
+                    saveToStorage();
+                }
+                
+                if (isAdmin) {
+                    document.getElementById('adminNav').style.display = 'block';
+                }
+            } else {
+                // Тестовый режим
+                document.getElementById('userInfo').textContent = 'Тестовый пользователь';
+                document.getElementById('welcomeName').textContent = 'Тест';
+                document.getElementById('userInitials').textContent = 'ТП';
+                isAdmin = true;
+                document.getElementById('adminNav').style.display = 'block';
+                
+                currentEmployee = employees[0] || {
+                    id: 1,
+                    name: 'Тестовый пользователь',
+                    position: 'Developer',
+                    department: 'IT'
+                };
+            }
+
+            loadData();
+            renderDashboard();
+            renderProfile();
+            renderTasks();
+            renderVacation();
+            renderTeam();
+            if (isAdmin) renderAdmin();
+
+            const savedTheme = localStorage.getItem('theme_portal') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem('employees_portal');
+            if (stored) {
+                employees = JSON.parse(stored);
+            } else {
+                employees = [
+                    {
+                        id: 1,
+                        name: 'Алексей Петров',
+                        position: 'Senior Developer',
+                        department: 'IT',
+                        email: 'a.petrov@company.com',
+                        phone: '+7 (999) 123-45-67',
+                        telegramId: null,
+                        status: 'online',
+                        projects: ['API Platform', 'Mobile Backend']
+                    },
+                    {
+                        id: 2,
+                        name: 'Мария Сидорова',
+                        position: 'Lead Designer',
+                        department: 'Дизайн',
+                        email: 'm.sidorova@company.com',
+                        phone: '+7 (999) 234-56-78',
+                        telegramId: null,
+                        status: 'online',
+                        projects: ['Website Redesign']
+                    },
+                    {
+                        id: 3,
+                        name: 'Дмитрий Козлов',
+                        position: 'Product Manager',
+                        department: 'Продукт',
+                        email: 'd.kozlov@company.com',
+                        phone: '+7 (999) 345-67-89',
+                        telegramId: null,
+                        status: 'away',
+                        projects: ['Q4 Roadmap']
+                    }
+                ];
+                saveToStorage();
+            }
+
+            const tasksStored = localStorage.getItem('tasks_portal');
+            if (tasksStored) {
+                tasks = JSON.parse(tasksStored);
+            } else {
+                tasks = [
+                    {
+                        id: 1,
+                        userId: currentEmployee?.id,
+                        title: 'Подготовить отчёт',
+                        description: 'Квартальный отчёт по продажам',
+                        priority: 'high',
+                        deadline: '2026-01-20',
+                        completed: false
+                    },
+                    {
+                        id: 2,
+                        userId: currentEmployee?.id,
+                        title: 'Встреча с командой',
+                        description: 'Обсудить планы на неделю',
+                        priority: 'medium',
+                        deadline: '2026-01-17',
+                        completed: false
+                    }
+                ];
+                saveTasksToStorage();
+            }
+
+            const vacationStored = localStorage.getItem('vacation_portal');
+            if (vacationStored) {
+                vacationRequests = JSON.parse(vacationStored);
+            } else {
+                vacationRequests = [];
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('employees_portal', JSON.stringify(employees));
+        }
+
+        function saveTasksToStorage() {
+            localStorage.setItem('tasks_portal', JSON.stringify(tasks));
+        }
+
+        function saveVacationToStorage() {
+            localStorage.setItem('vacation_portal', JSON.stringify(vacationRequests));
+        }
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(`page-${pageName}`).classList.add('active');
+            event?.target.classList.add('active');
+        }
+
+        function goToProfile() {
+            showPage('profile');
+            document.querySelectorAll('.nav-item')[1].classList.add('active');
+        }
+
+        function renderDashboard() {
+            const userTasks = tasks.filter(t => t.userId === currentEmployee?.id);
+            const activeTasks = userTasks.filter(t => !t.completed);
+            const completedTasks = userTasks.filter(t => t.completed);
+            const onlineEmployees = employees.filter(e => e.status === 'online');
+
+            document.getElementById('activeTasks').textContent = activeTasks.length;
+            document.getElementById('completedTasks').textContent = completedTasks.length;
+            document.getElementById('onlineEmployees').textContent = onlineEmployees.length;
+
+            const nextVacation = vacationRequests
+                .filter(v => v.userId === currentEmployee?.id && v.status === 'approved')
+                .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))[0];
+            
+            if (nextVacation) {
+                const days = Math.ceil((new Date(nextVacation.startDate) - new Date()) / (1000 * 60 * 60 * 24));
+                document.getElementById('daysToVacation').textContent = days > 0 ? days : '—';
+            }
+
+            const todayTasksContainer = document.getElementById('todayTasks');
+            const today = new Date().toISOString().split('T')[0];
+            const todayTasks = activeTasks.filter(t => t.deadline === today);
+
+            if (todayTasks.length === 0) {
+                todayTasksContainer.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><div class="empty-title">Задач на сегодня нет</div></div>';
+            } else {
+                todayTasksContainer.innerHTML = todayTasks.map(t => renderTaskItem(t)).join('');
+            }
+        }
+
+        function renderProfile() {
+            if (!currentEmployee) return;
+
+            document.getElementById('profileInitials').textContent = 
+                currentEmployee.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('profileName').textContent = currentEmployee.name;
+            document.getElementById('profilePosition').textContent = currentEmployee.position;
+
+            document.getElementById('profileInfoGrid').innerHTML = `
+                <div class="info-card">
+                    <div class="info-label">Отдел</div>
+                    <div class="info-value">${currentEmployee.department}</div>
+                </div>
+                ${currentEmployee.email ? `
+                <div class="info-card">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">${currentEmployee.email}</div>
+                </div>` : ''}
+                ${currentEmployee.phone ? `
+                <div class="info-card">
+                    <div class="info-label">Телефон</div>
+                    <div class="info-value">${currentEmployee.phone}</div>
+                </div>` : ''}
+                <div class="info-card">
+                    <div class="info-label">Статус</div>
+                    <div class="info-value">🟢 В сети</div>
+                </div>
+            `;
+
+            if (currentEmployee.projects && currentEmployee.projects.length > 0) {
+                document.getElementById('profileProjects').innerHTML = currentEmployee.projects
+                    .map(p => `<div class="card"><div class="card-title">${p}</div></div>`)
+                    .join('');
+            } else {
+                document.getElementById('profileProjects').innerHTML = 
+                    '<div class="empty"><div class="empty-icon">🚀</div><div class="empty-title">Нет активных проектов</div></div>';
+            }
+        }
+
+        function renderTasks() {
+            const userTasks = tasks.filter(t => t.userId === currentEmployee?.id);
+            const container = document.getElementById('allTasks');
+
+            if (userTasks.length === 0) {
+                container.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><div class="empty-title">У вас нет задач</div></div>';
+            } else {
+                container.innerHTML = userTasks.map(t => renderTaskItem(t)).join('');
+            }
+        }
+
+        function renderTaskItem(task) {
+            const priorityClass = `priority-${task.priority}`;
+            const priorityText = { high: 'Высокий', medium: 'Средний', low: 'Низкий' }[task.priority];
+            const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString('ru-RU') : '';
+
+            return `
+                <div class="task-item">
+                    <div class="task-checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})">
+                        ${task.completed ? '✓' : ''}
+                    </div>
+                    <div class="task-content">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-meta">${deadline ? `📅 ${deadline}` : ''}</div>
+                    </div>
+                    <div class="task-priority ${priorityClass}">${priorityText}</div>
+                </div>
+            `;
+        }
+
+        function toggleTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasksToStorage();
+                renderDashboard();
+                renderTasks();
+            }
+        }
+
+        function renderVacation() {
+            const userRequests = vacationRequests.filter(v => v.userId === currentEmployee?.id);
+            const container = document.getElementById('vacationList');
+
+            if (userRequests.length === 0) {
+                container.innerHTML = '<div class="empty"><div class="empty-icon">🏖️</div><div class="empty-title">Нет заявок</div></div>';
+            } else {
+                container.innerHTML = userRequests.map(v => {
+                    const statusText = { pending: 'Ожидает', approved: 'Одобрено', rejected: 'Отклонено' }[v.status];
+                    const startDate = new Date(v.startDate).toLocaleDateString('ru-RU');
+                    const endDate = new Date(v.endDate).toLocaleDateString('ru-RU');
+                    const typeText = { annual: 'Ежегодный', sick: 'Больничный', unpaid: 'Неоплачиваемый', personal: 'Личные обстоятельства' }[v.type];
+
+                    return `
+                        <div class="vacation-card">
+                            <div class="vacation-info">
+                                <h4>${typeText}</h4>
+                                <div class="vacation-dates">📅 ${startDate} — ${endDate}</div>
+                                ${v.comment ? `<div class="vacation-dates">${v.comment}</div>` : ''}
+                            </div>
+                            <div class="vacation-status status-${v.status}">${statusText}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function renderTeam() {
+            const container = document.getElementById('teamGrid');
+            container.innerHTML = employees.map(emp => {
+                const initials = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                const statusClass = emp.status === 'online' ? 'online' : '';
+
+                return `
+                    <div class="employee-card">
+                        <div class="employee-avatar-large">
+                            ${initials}
+                            ${emp.status === 'online' ? '<div class="online-indicator"></div>' : ''}
+                        </div>
+                        <div class="employee-name">${emp.name}</div>
+                        <div class="employee-position">${emp.position}</div>
+                        <div class="employee-contacts">
+                            ${emp.email ? `<div>✉️ ${emp.email}</div>` : ''}
+                            ${emp.phone ? `<div>📞 ${emp.phone}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderAdmin() {
+            document.getElementById('adminTotalEmployees').textContent = employees.length;
+            document.getElementById('adminActiveTasks').textContent = tasks.filter(t => !t.completed).length;
+            document.getElementById('adminVacationRequests').textContent = vacationRequests.filter(v => v.status === 'pending').length;
+            
+            const container = document.getElementById('adminEmployeeGrid');
+            container.innerHTML = employees.map(emp => {
+                const initials = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+                return `
+                    <div class="employee-card">
+                        <div class="employee-avatar-large">${initials}</div>
+                        <div class="employee-name">${emp.name}</div>
+                        <div class="employee-position">${emp.position}</div>
+                        <div class="employee-contacts">
+                            <div>${emp.department}</div>
+                            ${emp.email ? `<div>${emp.email}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const pendingRequests = vacationRequests.filter(v => v.status === 'pending');
+            const vacationContainer = document.getElementById('adminVacationList');
+            
+            if (pendingRequests.length === 0) {
+                vacationContainer.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><div class="empty-title">Нет новых заявок</div></div>';
+            } else {
+                vacationContainer.innerHTML = pendingRequests.map(v => {
+                    const employee = employees.find(e => e.id === v.userId);
+                    const typeText = { annual: 'Ежегодный', sick: 'Больничный', unpaid: 'Неоплачиваемый', personal: 'Личные обстоятельства' }[v.type];
+                    const startDate = new Date(v.startDate).toLocaleDateString('ru-RU');
+                    const endDate = new Date(v.endDate).toLocaleDateString('ru-RU');
+
+                    return `
+                        <div class="vacation-card">
+                            <div class="vacation-info">
+                                <h4>${employee?.name || 'Сотрудник'} — ${typeText}</h4>
+                                <div class="vacation-dates">📅 ${startDate} — ${endDate}</div>
+                                ${v.comment ? `<div class="vacation-dates">${v.comment}</div>` : ''}
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-success btn-small" onclick="approveVacation(${v.id})">✓ Одобрить</button>
+                                <button class="btn btn-small" onclick="rejectVacation(${v.id})">✕ Отклонить</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function openAddTaskModal() {
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('active');
+        }
+
+        function saveTask(e) {
+            e.preventDefault();
+            
+            const task = {
+                id: Date.now(),
+                userId: currentEmployee?.id,
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDesc').value,
+                priority: document.getElementById('taskPriority').value,
+                deadline: document.getElementById('taskDeadline').value,
+                completed: false
+            };
+
+            tasks.push(task);
+            saveTasksToStorage();
+            renderDashboard();
+            renderTasks();
+            closeTaskModal();
+            tg.showAlert('Задача добавлена');
+        }
+
+        function submitVacationRequest(e) {
+            e.preventDefault();
+
+            const request = {
+                id: Date.now(),
+                userId: currentEmployee?.id,
+                type: document.getElementById('vacationType').value,
+                startDate: document.getElementById('vacationStart').value,
+                endDate: document.getElementById('vacationEnd').value,
+                comment: document.getElementById('vacationComment').value,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            vacationRequests.push(request);
+            saveVacationToStorage();
+            renderVacation();
+            if (isAdmin) renderAdmin();
+            
+            e.target.reset();
+            tg.showAlert('Заявка отправлена');
+        }
+
+        function approveVacation(id) {
+            const request = vacationRequests.find(v => v.id === id);
+            if (request) {
+                request.status = 'approved';
+                saveVacationToStorage();
+                renderAdmin();
+                tg.showAlert('Заявка одобрена');
+            }
+        }
+
+        function rejectVacation(id) {
+            const request = vacationRequests.find(v => v.id === id);
+            if (request) {
+                request.status = 'rejected';
+                saveVacationToStorage();
+                renderAdmin();
+                tg.showAlert('Заявка отклонена');
+            }
+        }
+
+        function openAddEmployeeModal() {
+            document.getElementById('employeeModal').classList.add('active');
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').classList.remove('active');
+        }
+
+        function saveEmployee(e) {
+            e.preventDefault();
+
+            const employee = {
+                id: Date.now(),
+                name: document.getElementById('empName').value,
+                position: document.getElementById('empPosition').value,
+                department: document.getElementById('empDepartment').value,
+                email: document.getElementById('empEmail').value,
+                phone: document.getElementById('empPhone').value,
+                telegramId: parseInt(document.getElementById('empTelegramId').value) || null,
+                status: 'offline',
+                projects: []
+            };
+
+            employees.push(employee);
+            saveToStorage();
+            renderTeam();
+            if (isAdmin) renderAdmin();
+            closeEmployeeModal();
+            tg.showAlert('Сотрудник добавлен');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            
+            if (html.hasAttribute('data-theme')) {
+                html.removeAttribute('data-theme');
+                icon.textContent = '🌙';
+                localStorage.setItem('theme_portal', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                icon.textContent = '☀️';
+                localStorage.setItem('theme_portal', 'dark');
+            }
+        }
+
+        ['taskModal', 'employeeModal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', e => {
+                if (e.target.id === id) {
+                    if (id === 'taskModal') closeTaskModal();
+                    else if (id === 'employeeModal') closeEmployeeModal();
+                }
+            });
+        });
+
+        init();
+    </script>
+</body>
+</html>
